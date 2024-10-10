@@ -6,6 +6,6 @@ class ReflectivePoint:
     def __init__(self, position: Coords, reflectivity=1.0):
         self.position = position
             
-    def reflectivity(self):
+    def reflectivity(self) -> float:
         """Возвращает коэффициент отражения, для простоты считаем его равным 1"""
         return 1

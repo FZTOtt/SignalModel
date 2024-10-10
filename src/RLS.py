@@ -5,22 +5,24 @@ def standart(direction: Coords):
     return 1.0
 
 class Antenna:
-    def __init__(self, coords: Coords, diahramm = standart, power = 1):
+    def __init__(self, coords: Coords, diagramm = standart, power = 1):
         self.position = coords
-        self.diagramm = standart
+        self.diagramm = diagramm
         self.power = power
 
     def get_cordinates(self):
         return self.position
     
-    def directivity(self, direction: Coords):
+    def directivity(self, target_position: Coords) -> float:
         """Возвращает диаграмму направленности антенны. Для упрощения считаем её всенаправленной."""
-        # Здесь можно использовать реальные диаграммы направленности
-        return self.diagramm(direction)
+        direction = target_position.get_coords() - self.position.get_coords()
+        rotated_direction = self.rotate_vector(direction)
+        rotated_direction_normalized = rotated_direction / np.linalg.norm(rotated_direction)
+        return self.diagramm(rotated_direction_normalized)
 
     def rotate_vector(self, vector):
         """Применяет вращение к вектору направления с учётом углов ориентации антенны"""
-        alpha, beta, gamma = self.orientation.x, self.orientation.y, self.orientation.z
+        alpha, beta, gamma = self.position.alpha, self.position.betta, self.position.gamma
 
         # Матрицы вращения вокруг осей x, y, z
         R_x = np.array([[1, 0, 0],

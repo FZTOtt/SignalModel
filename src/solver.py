@@ -9,7 +9,7 @@ class Solver:
         self.reflective_points = reflective_points
         self.attenuation_model = attenuation_model
 
-    def attenuate(self, signal, distance):
+    def attenuate(self, signal: float, distance: float) -> float:
         if self.attenuation_model == 'squared':
             return signal / (distance ** 2)
 
@@ -21,14 +21,14 @@ class Solver:
 
             distance_to_point = self.antenna.position.distance_to(point.position) # расстояние до точки 
             
-            power = self.antenna.directivity(point.position) * self.antenna.power # мощность сигнала в направлении точки 
+            power = self.antenna.directivity(point.position) * self.antenna.power # мощность сигнала в направлении точки
             signal_at_point = self.attenuate(power, distance_to_point)
                         
             distance_to_antenna = point.position.distance_to(self.antenna.position) # расстояние от точки до антенны
 
             reflected_signal_to_antenna = self.attenuate(signal_at_point * point.reflectivity(), distance_to_antenna) # Сигнал, пришедший на антенну
 
-            accepted_signal = self.antenna.directivity(distance_to_antenna) * reflected_signal_to_antenna
+            accepted_signal = self.antenna.directivity(point.position) * reflected_signal_to_antenna
             
             total_signal += accepted_signal
         
