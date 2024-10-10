@@ -8,14 +8,16 @@ def calculate_reflected_signal(antenna: RLS.Antenna, reflective_point: Reflectiv
     return reflective_point.reflect_signal(antenna, antenna.get_cordinates())
 
 def init_antenna():
-    antenna_position = coordSystem.Coords(0, 0, 0)
+    active_antenna_position = coordSystem.Coords(0, 0, 0)
+    passive_antenna_position = coordSystem.Coords(-10, -1, -1)
     reflective_point_position = coordSystem.Coords(5, 5, 0)
     
     # Создаем объекты
-    antenna = RLS.Antenna(antenna_position)
-    reflective_point = ReflectivePoint(reflective_point_position, reflectivity=1)
+    active_antenna = RLS.Antenna(active_antenna_position)
+    passive_antenna = RLS.Antenna(passive_antenna_position)
+    reflective_point = ReflectivePoint(reflective_point_position, reflectivity=1)   
     
-    solver = Solver(antenna, [reflective_point])
+    solver = Solver(active_antenna, [reflective_point], recieve_antenna=passive_antenna)
 
     result = solver.calculate_received_signal()
     
