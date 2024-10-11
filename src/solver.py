@@ -1,6 +1,7 @@
+import numpy as np
 from RLS import Antenna
+from cylinder import Cylinder
 from reflectionPoint import ReflectivePoint
-
 
 class Solver:
     def __init__(self, active_antenna: Antenna, reflective_points: list[ReflectivePoint], attenuation_model = 'squared', recieve_antenna = Antenna | None):
@@ -37,4 +38,65 @@ class Solver:
             
             total_signal += accepted_signal
         
+        return total_signal
+    
+    def __init__(self, antenna, objects: list[Cylinder]):
+        self.antenna = antenna
+        self.objects = objects
+
+    def intersect_ray_triangle(ray_origin, ray_direction, v0, v1, v2):
+        """Проверка пересечения луча с треугольником"""
+        epsilon = 1e-8
+        edge1 = v1 - v0
+        edge2 = v2 - v0
+        h = np.cross(ray_direction, edge2)
+        a = np.dot(edge1, h)
+
+        if -epsilon < a < epsilon:
+            return False, None  # Луч параллелен треугольнику
+
+        f = 1.0 / a
+        s = ray_origin - v0
+        u = f * np.dot(s, h)
+
+        if u < 0.0 or u > 1.0:
+            return False, None
+
+        q = np.cross(s, edge1)
+        v = f * np.dot(ray_direction, q)
+
+        if v < 0.0 or u + v > 1.0:
+            return False, None
+
+        t = f * np.dot(edge2, q)
+        if t > epsilon:  # Луч пересекает треугольник
+            intersection_point = ray_origin + ray_direction * t
+            return True, intersection_point
+        else:
+            return False, None
+        
+    def reflect_vector(direction, normal):
+        """Отражает вектор относительно нормали"""
+        return direction - 2 * np.dot(direction, normal) * normal
+
+    def calculate_signal(self):
+        total_signal = 0
+        for obj in self.objects:
+            for face in obj.get_mesh():
+                v0, v1, v2 = face
+
+                # Проверяем пересечение луча с треугольником
+                intersects, intersection_point = self.intersect_ray_triangle(self.antenna.position.get_coords(),
+                                                                        self.antenna.get_direction(), 
+                                                                        v0, v1, v2)
+                if intersects:
+                    # Вычисляем нормаль треугольника
+                    normal = np.cross(v1 - v0, v2 - v0)
+                    normal = normal / np.linalg.norm(normal)
+
+                    # Вычисляем отражённый сигнал
+                    reflected_direction = self.reflect_vector(self.antenna.get_direction(), normal)
+
+                    # Моделируем дальнейшее распространение сигнала и принимаем его
+                    total_signal += self.antenna.receive_signal(reflected_direction)
         return total_signal
